@@ -17,7 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, TeamViewSet, ActivityViewSet, LeaderboardViewSet, WorkoutViewSet, api_root
+from .views import UserViewSet, TeamViewSet, ActivityViewSet, LeaderboardViewSet, WorkoutViewSet
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+import os
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
@@ -29,5 +33,25 @@ router.register(r'leaderboard', LeaderboardViewSet, basename='leaderboard')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
-    path('', api_root, name='api-root'),
+    path('',
+        api_view(['GET'])(
+            lambda request, format=None: Response({
+                'users': _build_api_url(request, 'user-list'),
+                'teams': _build_api_url(request, 'team-list'),
+                'workouts': _build_api_url(request, 'workout-list'),
+                'activities': _build_api_url(request, 'activity-list'),
+                'leaderboard': _build_api_url(request, 'leaderboard-list'),
+            })
+        ),
+        name='api-root'),
 ]
+
+# Helper to build API URLs using $CODESPACE_NAME or localhost
+def _build_api_url(request, name):
+    codespace = os.environ.get('CODESPACE_NAME')
+    if codespace:
+        base = f"https://{codespace}-8000.app.github.dev"
+    else:
+        base = f"http://localhost:8000"
+    path = reverse(name, request=request)
+    return f"{base}{path}"
