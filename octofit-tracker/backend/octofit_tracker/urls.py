@@ -1,0 +1,57 @@
+"""octofit_tracker URL Configuration
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/4.1/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+
+from django.contrib import admin
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import UserViewSet, TeamViewSet, ActivityViewSet, LeaderboardViewSet, WorkoutViewSet
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+import os
+
+router = DefaultRouter()
+router.register(r'users', UserViewSet, basename='user')
+router.register(r'teams', TeamViewSet, basename='team')
+router.register(r'workouts', WorkoutViewSet, basename='workout')
+router.register(r'activities', ActivityViewSet, basename='activity')
+router.register(r'leaderboard', LeaderboardViewSet, basename='leaderboard')
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
+    path('',
+        api_view(['GET'])(
+            lambda request, format=None: Response({
+                'users': _build_api_url(request, 'user-list'),
+                'teams': _build_api_url(request, 'team-list'),
+                'workouts': _build_api_url(request, 'workout-list'),
+                'activities': _build_api_url(request, 'activity-list'),
+                'leaderboard': _build_api_url(request, 'leaderboard-list'),
+            })
+        ),
+        name='api-root'),
+]
+
+# Helper to build API URLs using $CODESPACE_NAME or localhost
+def _build_api_url(request, name):
+    codespace = os.environ.get('CODESPACE_NAME')
+    if codespace:
+        base = f"https://{codespace}-8000.app.github.dev"
+    else:
+        base = f"http://localhost:8000"
+    path = reverse(name, request=request)
+    return f"{base}{path}"

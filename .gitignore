@@ -1,3 +1,33 @@
+.venv
+venv/
+ENV/
+env/
+octofit-tracker/backend/venv/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and test output
+*.log
+.coverage
+.pytest_cache/
 .DS_Store
 
 # Virtual Environment
